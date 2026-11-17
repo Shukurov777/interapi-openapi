@@ -1,0 +1,35 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Lint OpenAPI spec
+        run: npx -y @redocly/cli@2.79.0 lint openapi.yaml
+
+      - name: openapi.json matches openapi.yaml
+        run: |
+          pip install --quiet pyyaml
+          python3 - <<'PY'
+          import json, yaml
+          a = yaml.safe_load(open("openapi.yaml", encoding="utf-8"))
+          b = json.load(open("openapi.json", encoding="utf-8"))
+          assert a == b, "openapi.json differs from openapi.yaml"
+          print("openapi.json is in sync")
+          PY
+
+      - name: GitHub Pages copy is in sync
+        run: |
+          cmp openapi.yaml docs/openapi.yaml
+          cmp openapi.json docs/openapi.json

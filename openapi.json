@@ -1,0 +1,3982 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "InterAPI",
+    "version": "2.0.0",
+    "summary": "Social media downloader API: Instagram, TikTok, YouTube, X (Twitter), Facebook, Pinterest, RuTube, Likee, YouTube search and Shazam.",
+    "description": "**InterAPI** is a REST API that turns links from **Instagram, TikTok, YouTube, X (Twitter), Facebook, Pinterest, RuTube and Likee** into JSON with direct video, photo and audio URLs. It also offers **YouTube search** (videos, music, playlists, channels) and **Shazam music recognition** from a URL or an uploaded file. One universal endpoint, `GET /api/v1/auto`, detects the platform from any supported link.\n\nTypical uses: Telegram bots, video downloader apps and sites, media archiving, social media tools, music recognition.\n\n## Quick start\n\n1. Create an account at [interapi.dev](https://interapi.dev/) and copy your API key. **1,000 free credits** on sign-up.\n2. Send a request:\n\n```bash\ncurl -G \"https://api.interapi.dev/api/v1/auto\" \\\n  --data-urlencode \"url=https://vt.tiktok.com/ZSQrfS4U7/\" \\\n  -H \"X-API-Key: YOUR_API_KEY\"\n```\n\n## Authentication\n\nSend your key in the `X-API-Key` header. `Authorization: Bearer ia_live_...` also works, and so does the `?api=ia_live_...` query parameter - use it when a third-party client (for example Telegram) downloads a file by URL and cannot send headers. The catalog, status and health endpoints need no key.\n\n## Credits and pricing\n\nYou pay per successful request in **credits**: **5 to 15 credits** depending on the API (Instagram and TikTok 6, YouTube 15, YouTube search 6, other platforms and Shazam 5; `/api/v1/auto` costs as the platform it detects).\n\n* `5xx` answers are **free**.\n* `4xx` answers (bad link, deleted post) cost **at most 1 credit**.\n* Missing or invalid parameters (`422`) and authentication errors are not charged.\n* File proxies (`/api/v1/media/file`, `/api/v1/media/thumb`, `/api/v1/youtube/file`) and `/api/v1/account` are free.\n* Credits **never expire**, there is **no subscription**. See [pricing](https://interapi.dev/en/pricing/).\n* Free credits are limited to **30 requests per hour** until the first top-up.\n\nEvery metered response carries `X-Request-Cost` and `X-Balance-Remaining` headers.\n\n## Response codes\n\n| Code | Meaning |\n|------|---------|\n| `200` | Success. The request price is charged. |\n| `400` | Invalid or unsupported link. |\n| `401` | API key missing or invalid. |\n| `402` | Out of credits - [top up](https://interapi.dev/en/pricing/). |\n| `403` | Private content or disabled account. |\n| `404` | Post not found (deleted or unavailable). |\n| `422` | Missing or invalid query parameter. |\n| `429` | Rate limit exceeded (see `Retry-After`). |\n| `502` / `5xx` | Source platform or server problem. Not charged - retry. |\n\nAll errors share one JSON shape: `{\"detail\": \"...\", \"request_id\": \"...\"}`.\n\n## Links\n\n* Website: <https://interapi.dev/>\n* Documentation: <https://interapi.dev/en/docs/>\n* Pricing: <https://interapi.dev/en/pricing/>\n* Status: <https://interapi.dev/en/status/>\n\nInterAPI is an independent service and is not affiliated with Instagram, TikTok, YouTube, X, Facebook, Pinterest, RuTube, Likee or Shazam. Names and logos belong to their owners.\n",
+    "contact": {
+      "name": "InterAPI",
+      "url": "https://interapi.dev"
+    },
+    "license": {
+      "name": "MIT License (this specification)",
+      "identifier": "MIT"
+    },
+    "x-logo": {
+      "url": "https://interapi.dev/icon-512.png",
+      "altText": "InterAPI"
+    }
+  },
+  "externalDocs": {
+    "description": "InterAPI documentation",
+    "url": "https://interapi.dev/en/docs/"
+  },
+  "servers": [
+    {
+      "url": "https://api.interapi.dev",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    },
+    {
+      "BearerAuth": []
+    },
+    {
+      "ApiKeyQuery": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auto-detect",
+      "description": "One endpoint for every supported platform: send any supported link and the platform is detected for you.",
+      "externalDocs": {
+        "description": "Auto-detect documentation",
+        "url": "https://interapi.dev/en/docs/"
+      }
+    },
+    {
+      "name": "Instagram",
+      "description": "Reels, posts, photos and carousels from public Instagram accounts.",
+      "externalDocs": {
+        "description": "Instagram documentation",
+        "url": "https://interapi.dev/en/docs/instagram/"
+      }
+    },
+    {
+      "name": "TikTok",
+      "description": "TikTok and Douyin videos without watermark, plus the MP3 track.",
+      "externalDocs": {
+        "description": "TikTok documentation",
+        "url": "https://interapi.dev/en/docs/tiktok/"
+      }
+    },
+    {
+      "name": "YouTube",
+      "description": "YouTube and YouTube Music: video and audio formats, direct file download.",
+      "externalDocs": {
+        "description": "YouTube documentation",
+        "url": "https://interapi.dev/en/docs/youtube/"
+      }
+    },
+    {
+      "name": "X (Twitter)",
+      "description": "Videos, GIFs and photos from X (Twitter) posts.",
+      "externalDocs": {
+        "description": "X (Twitter) documentation",
+        "url": "https://interapi.dev/en/docs/x/"
+      }
+    },
+    {
+      "name": "Facebook",
+      "description": "Public Facebook videos and Reels in HD and SD.",
+      "externalDocs": {
+        "description": "Facebook documentation",
+        "url": "https://interapi.dev/en/docs/facebook/"
+      }
+    },
+    {
+      "name": "Pinterest",
+      "description": "Pinterest pins: video, images and GIFs.",
+      "externalDocs": {
+        "description": "Pinterest documentation",
+        "url": "https://interapi.dev/en/docs/pinterest/"
+      }
+    },
+    {
+      "name": "RuTube",
+      "description": "RuTube videos and Shorts via HLS, up to 1080p.",
+      "externalDocs": {
+        "description": "RuTube documentation",
+        "url": "https://interapi.dev/en/docs/rutube/"
+      }
+    },
+    {
+      "name": "Likee",
+      "description": "Short videos from Likee.",
+      "externalDocs": {
+        "description": "Likee documentation",
+        "url": "https://interapi.dev/en/docs/likee/"
+      }
+    },
+    {
+      "name": "YouTube Search",
+      "description": "Search videos, music, playlists, channels, live streams and Shorts on YouTube and YouTube Music.",
+      "externalDocs": {
+        "description": "YouTube Search documentation",
+        "url": "https://interapi.dev/en/docs/youtube-search/"
+      }
+    },
+    {
+      "name": "Shazam",
+      "description": "Identify a song from an audio or video URL or an uploaded file.",
+      "externalDocs": {
+        "description": "Shazam documentation",
+        "url": "https://interapi.dev/en/docs/shazam/"
+      }
+    },
+    {
+      "name": "Files",
+      "description": "File proxy endpoints: hand a client a plain URL instead of a CDN link. Authenticate with the `api` query parameter. Downloads cost no credits.",
+      "externalDocs": {
+        "description": "Files documentation",
+        "url": "https://interapi.dev/en/docs/#files"
+      }
+    },
+    {
+      "name": "Account",
+      "description": "Balance, plan and limits of the API key.",
+      "externalDocs": {
+        "description": "Account documentation",
+        "url": "https://interapi.dev/en/docs/#auth"
+      }
+    },
+    {
+      "name": "Service",
+      "description": "Public catalog, health and status endpoints. No API key required.",
+      "externalDocs": {
+        "description": "Service documentation",
+        "url": "https://interapi.dev/en/status/"
+      }
+    }
+  ],
+  "x-tagGroups": [
+    {
+      "name": "Media downloaders",
+      "tags": [
+        "Auto-detect",
+        "Instagram",
+        "TikTok",
+        "YouTube",
+        "X (Twitter)",
+        "Facebook",
+        "Pinterest",
+        "RuTube",
+        "Likee"
+      ]
+    },
+    {
+      "name": "Search and music",
+      "tags": [
+        "YouTube Search",
+        "Shazam"
+      ]
+    },
+    {
+      "name": "Files",
+      "tags": [
+        "Files"
+      ]
+    },
+    {
+      "name": "Account and service",
+      "tags": [
+        "Account",
+        "Service"
+      ]
+    }
+  ],
+  "paths": {
+    "/api/v1/auto": {
+      "get": {
+        "tags": [
+          "Auto-detect"
+        ],
+        "operationId": "getMediaAuto",
+        "summary": "Download media from any supported link (platform auto-detected)",
+        "description": "Send one link from **Instagram, TikTok, Pinterest, YouTube (including Shorts and Music), Likee, X (Twitter), Facebook or RuTube**. The platform is detected from the URL and the answer has the same shape as the matching endpoint plus the `source` field.\n\n**Price: 5 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free. `/api/v1/auto` costs as much as the platform it resolves to: 5 credits for most platforms, 6 for Instagram and TikTok, 15 for YouTube.",
+        "x-credits": 5,
+        "x-credits-max": 15,
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "Link to a post or video on any supported platform (Instagram, TikTok, Pinterest, YouTube, Likee, X, Facebook, RuTube). Share text that contains a link is accepted too.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://vt.tiktok.com/ZSQrfS4U7/"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Media files of the detected platform. `source` tells which platform was detected.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoMediaResponse"
+                },
+                "examples": {
+                  "tiktok": {
+                    "summary": "TikTok link detected",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "title": "Любите маринад с уксусом? #рецепты #рецептынановыйгод",
+                      "description": "Любите маринад с уксусом? #рецепты #рецептынановыйгод",
+                      "media": [
+                        {
+                          "type": "video",
+                          "url": "https://v16m.tiktokcdn-us.com/video/tos/alisg/tos-alisg-pve-0037/example/?mime_type=video_mp4",
+                          "quality": "SD",
+                          "download_url": "https://dl.example.com/get?token=EXAMPLE",
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        },
+                        {
+                          "type": "video",
+                          "url": "https://v16.tiktokcdn-us.com/video/tos/alisg/tos-alisg-pve-0037/example/7044457969840295169_original.mp4",
+                          "quality": "HD",
+                          "download_url": "https://dl.example.com/get?token=EXAMPLE",
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        },
+                        {
+                          "type": "audio",
+                          "url": "https://v16-ies-music.tiktokcdn-us.com/video/tos/alisg/tos-alisg-v-27dcd7/example/?mime_type=audio_mpeg",
+                          "quality": "MP3",
+                          "download_url": "https://dl.example.com/get?token=EXAMPLE",
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        },
+                        {
+                          "type": "photo",
+                          "url": "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-p-0037/ba95e034e50845f4aa0a71332f03cc4f~tplv-tiktokx-shrink:360:360.webp",
+                          "quality": "cover",
+                          "download_url": null,
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        }
+                      ],
+                      "video_url": "https://v16.tiktokcdn-us.com/video/tos/alisg/tos-alisg-pve-0037/example/7044457969840295169_original.mp4",
+                      "video_hd_url": "https://v16.tiktokcdn-us.com/video/tos/alisg/tos-alisg-pve-0037/example/7044457969840295169_original.mp4",
+                      "music_url": "https://v16-ies-music.tiktokcdn-us.com/video/tos/alisg/tos-alisg-v-27dcd7/example/?mime_type=audio_mpeg",
+                      "thumbnail": "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-p-0037/ba95e034e50845f4aa0a71332f03cc4f~tplv-tiktokx-shrink:360:360.webp",
+                      "duration_sec": 0,
+                      "author": "",
+                      "channel_url": null,
+                      "duration_ms": 2812,
+                      "source": "tiktok"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -G \"https://api.interapi.dev/api/v1/auto\" \\\n  --data-urlencode \"url=https://vt.tiktok.com/ZSQrfS4U7/\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/auto\",\n    params={\"url\": \"https://vt.tiktok.com/ZSQrfS4U7/\"},\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    timeout=60,\n)\nr.raise_for_status()\nprint(r.json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"url\": \"https://vt.tiktok.com/ZSQrfS4U7/\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/auto?${params}`, {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconsole.log(await res.json());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/instagram": {
+      "get": {
+        "tags": [
+          "Instagram"
+        ],
+        "operationId": "getInstagramMedia",
+        "summary": "Download Instagram Reels, videos, photos and carousels",
+        "description": "Extracts media from **public** Instagram posts, Reels and multi-slide carousels. The `media` array holds one item per file (and per available size for photos) with `type` (`video` or `photo`), a direct file URL and a quality label. `video_url` / `video_hd_url` point at the main video and `thumbnail` at the preview image.\n\nPrivate accounts and stories are not available.\n\n**Price: 6 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free.",
+        "x-credits": 6,
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "Public HTTPS link to an Instagram post or Reel (`instagram.com/p/...` or `/reel/...`).",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://www.instagram.com/p/C2VFqJMtui4/"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "Content type hint for the parser. The default `media` works for photos and videos.",
+            "schema": {
+              "type": "string",
+              "default": "media"
+            },
+            "example": "media"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Direct media URLs and metadata.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialMediaResponse"
+                },
+                "examples": {
+                  "instagram": {
+                    "summary": "Photo carousel",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "title": "",
+                      "description": "",
+                      "media": [
+                        {
+                          "type": "photo",
+                          "url": "https://scontent.cdninstagram.com/v/t51.82787-15/651110129_n.jpg?stp=dst-jpg_e35",
+                          "quality": "1440x1440",
+                          "download_url": "https://dl.example.com/saveinsta?token=EXAMPLE",
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        },
+                        {
+                          "type": "photo",
+                          "url": "https://scontent.cdninstagram.com/v/t51.82787-15/651110129_n.jpg?stp=dst-jpg_e35_p1080x1080",
+                          "quality": "1080x1080",
+                          "download_url": "https://dl.example.com/saveinsta?token=EXAMPLE",
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        },
+                        {
+                          "type": "photo",
+                          "url": "https://scontent.cdninstagram.com/v/t51.82787-15/651110129_n.jpg?stp=dst-jpg_e35_p750x750",
+                          "quality": "750x750",
+                          "download_url": "https://dl.example.com/saveinsta?token=EXAMPLE",
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        }
+                      ],
+                      "video_url": null,
+                      "video_hd_url": null,
+                      "music_url": null,
+                      "thumbnail": "https://scontent.cdninstagram.com/v/t51.82787-15/651110129_n.jpg?stp=dst-jpg_e35_tt6",
+                      "duration_sec": 0,
+                      "author": "",
+                      "channel_url": null,
+                      "duration_ms": 678
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -G \"https://api.interapi.dev/api/v1/instagram\" \\\n  --data-urlencode \"url=https://www.instagram.com/p/C2VFqJMtui4/\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/instagram\",\n    params={\"url\": \"https://www.instagram.com/p/C2VFqJMtui4/\"},\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    timeout=60,\n)\nr.raise_for_status()\nprint(r.json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"url\": \"https://www.instagram.com/p/C2VFqJMtui4/\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/instagram?${params}`, {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconsole.log(await res.json());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/tiktok": {
+      "get": {
+        "tags": [
+          "TikTok"
+        ],
+        "operationId": "getTikTokVideo",
+        "summary": "Download TikTok videos without watermark (SD, HD, MP3)",
+        "description": "Accepts short links (`vt.tiktok.com`, `vm.tiktok.com`), full `tiktok.com` URLs and Douyin links. Returns the standard and HD variants of the video **without watermark**, a separate MP3 audio track (`music_url`) and the cover image. `title` holds the caption of the clip.\n\n**Price: 6 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free.",
+        "x-credits": 6,
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "TikTok or Douyin video link: short (`vt.` / `vm.`) or a full `www.tiktok.com/...` URL.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://vt.tiktok.com/ZSQrfS4U7/"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Direct media URLs and metadata.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialMediaResponse"
+                },
+                "examples": {
+                  "tiktok": {
+                    "summary": "Video with MP3 track",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "title": "Любите маринад с уксусом? #рецепты #рецептынановыйгод",
+                      "description": "Любите маринад с уксусом? #рецепты #рецептынановыйгод",
+                      "media": [
+                        {
+                          "type": "video",
+                          "url": "https://v16m.tiktokcdn-us.com/video/tos/alisg/tos-alisg-pve-0037/example/?mime_type=video_mp4",
+                          "quality": "SD",
+                          "download_url": "https://dl.example.com/get?token=EXAMPLE",
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        },
+                        {
+                          "type": "video",
+                          "url": "https://v16.tiktokcdn-us.com/video/tos/alisg/tos-alisg-pve-0037/example/7044457969840295169_original.mp4",
+                          "quality": "HD",
+                          "download_url": "https://dl.example.com/get?token=EXAMPLE",
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        },
+                        {
+                          "type": "audio",
+                          "url": "https://v16-ies-music.tiktokcdn-us.com/video/tos/alisg/tos-alisg-v-27dcd7/example/?mime_type=audio_mpeg",
+                          "quality": "MP3",
+                          "download_url": "https://dl.example.com/get?token=EXAMPLE",
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        },
+                        {
+                          "type": "photo",
+                          "url": "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-p-0037/ba95e034e50845f4aa0a71332f03cc4f~tplv-tiktokx-shrink:360:360.webp",
+                          "quality": "cover",
+                          "download_url": null,
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        }
+                      ],
+                      "video_url": "https://v16.tiktokcdn-us.com/video/tos/alisg/tos-alisg-pve-0037/example/7044457969840295169_original.mp4",
+                      "video_hd_url": "https://v16.tiktokcdn-us.com/video/tos/alisg/tos-alisg-pve-0037/example/7044457969840295169_original.mp4",
+                      "music_url": "https://v16-ies-music.tiktokcdn-us.com/video/tos/alisg/tos-alisg-v-27dcd7/example/?mime_type=audio_mpeg",
+                      "thumbnail": "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-p-0037/ba95e034e50845f4aa0a71332f03cc4f~tplv-tiktokx-shrink:360:360.webp",
+                      "duration_sec": 0,
+                      "author": "",
+                      "channel_url": null,
+                      "duration_ms": 2791
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -G \"https://api.interapi.dev/api/v1/tiktok\" \\\n  --data-urlencode \"url=https://vt.tiktok.com/ZSQrfS4U7/\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/tiktok\",\n    params={\"url\": \"https://vt.tiktok.com/ZSQrfS4U7/\"},\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    timeout=60,\n)\nr.raise_for_status()\nprint(r.json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"url\": \"https://vt.tiktok.com/ZSQrfS4U7/\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/tiktok?${params}`, {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconsole.log(await res.json());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/youtube": {
+      "get": {
+        "tags": [
+          "YouTube"
+        ],
+        "operationId": "getYouTubeVideo",
+        "summary": "Download YouTube video and audio (MP4, WebM, M4A, Opus)",
+        "description": "Accepts `youtube.com`, `youtu.be`, Shorts and `music.youtube.com` links. Returns `title`, `author`, `duration_sec`, the thumbnail and the full list of available formats in `media`: MP4 / WebM video in several resolutions and M4A / Opus audio-only streams. Every item carries `format_id` (itag), `height`, `ext` and `bitrate`.\n\nUse [`GET /api/v1/youtube/file`](#operation/downloadYouTubeFile) to receive the file itself instead of a CDN link.\n\n**Price: 15 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free.",
+        "x-credits": 15,
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "YouTube or YouTube Music link: `youtube.com/watch?v=...`, `youtu.be/...`, `/shorts/...` or `music.youtube.com/...`.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://youtu.be/UFk4_Ybx7yk"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Direct media URLs and metadata.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialMediaResponse"
+                },
+                "examples": {
+                  "youtube": {
+                    "summary": "Video with audio-only formats",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "title": "HAYEDEH - DANCE MIX  Songs/ میکس آهنگهای شاد شاد هایده",
+                      "description": "",
+                      "media": [
+                        {
+                          "type": "video",
+                          "url": "https://rr3---sn-example.googlevideo.com/videoplayback?expire=1794950007&itag=136&source=youtube",
+                          "quality": "mp4 (720p) avc1",
+                          "download_url": null,
+                          "format_id": "136",
+                          "height": 720,
+                          "ext": "mp4",
+                          "bitrate": 138427
+                        },
+                        {
+                          "type": "video",
+                          "url": "https://rr3---sn-example.googlevideo.com/videoplayback?expire=1794950007&itag=247&source=youtube",
+                          "quality": "webm (720p) vp9",
+                          "download_url": null,
+                          "format_id": "247",
+                          "height": 720,
+                          "ext": "webm",
+                          "bitrate": 403222
+                        },
+                        {
+                          "type": "video",
+                          "url": "https://rr3---sn-example.googlevideo.com/videoplayback?expire=1794950007&itag=135&source=youtube",
+                          "quality": "mp4 (480p) avc1",
+                          "download_url": null,
+                          "format_id": "135",
+                          "height": 480,
+                          "ext": "mp4",
+                          "bitrate": 56412
+                        },
+                        {
+                          "type": "video",
+                          "url": "https://rr3---sn-example.googlevideo.com/videoplayback?expire=1794950007&itag=134&source=youtube",
+                          "quality": "mp4 (360p) avc1",
+                          "download_url": null,
+                          "format_id": "134",
+                          "height": 360,
+                          "ext": "mp4",
+                          "bitrate": 42923
+                        },
+                        {
+                          "type": "audio",
+                          "url": "https://rr3---sn-example.googlevideo.com/videoplayback?expire=1794950007&itag=140&source=youtube",
+                          "quality": "m4a (129kb/s) AAC-LC",
+                          "download_url": null,
+                          "format_id": "140",
+                          "height": null,
+                          "ext": "m4a",
+                          "bitrate": 133491
+                        },
+                        {
+                          "type": "audio",
+                          "url": "https://rr3---sn-example.googlevideo.com/videoplayback?expire=1794950007&itag=250&source=youtube",
+                          "quality": "opus (68kb/s)",
+                          "download_url": null,
+                          "format_id": "250",
+                          "height": null,
+                          "ext": "opus",
+                          "bitrate": 78171
+                        }
+                      ],
+                      "video_url": null,
+                      "video_hd_url": null,
+                      "music_url": null,
+                      "thumbnail": "https://i.ytimg.com/vi/UFk4_Ybx7yk/mqdefault.jpg",
+                      "duration_sec": 3232,
+                      "author": "TaranehEnterprise",
+                      "channel_url": null,
+                      "duration_ms": 6413
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -G \"https://api.interapi.dev/api/v1/youtube\" \\\n  --data-urlencode \"url=https://youtu.be/UFk4_Ybx7yk\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/youtube\",\n    params={\"url\": \"https://youtu.be/UFk4_Ybx7yk\"},\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    timeout=60,\n)\nr.raise_for_status()\nprint(r.json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"url\": \"https://youtu.be/UFk4_Ybx7yk\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/youtube?${params}`, {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconsole.log(await res.json());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/x": {
+      "get": {
+        "tags": [
+          "X (Twitter)"
+        ],
+        "operationId": "getXMedia",
+        "summary": "Download X (Twitter) videos, GIFs and photos",
+        "description": "Accepts post links in the `x.com/<account>/status/<id>` and `twitter.com/<account>/status/<id>` form, including posts with several attachments. For videos every MP4 variant is returned from best to worst with a quality label and frame height; GIFs come back as short MP4 videos with quality `GIF`; photos in their original size. `video_hd_url` is the best quality, `video_url` a variant up to 720p, `title` holds the post text and `author` the account handle.\n\nThe same endpoint also answers at `/api/v1/twitter`.\n\n**Price: 5 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free.",
+        "x-credits": 5,
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "Link to a public post: `x.com/<account>/status/<id>` or `twitter.com/<account>/status/<id>`.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://x.com/elonmusk/status/1585341984679469056"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Direct media URLs and metadata.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialMediaResponse"
+                },
+                "examples": {
+                  "x": {
+                    "summary": "Post with video",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "title": "Entering Twitter HQ – let that sink in!",
+                      "description": "Entering Twitter HQ – let that sink in!",
+                      "media": [
+                        {
+                          "type": "video",
+                          "url": "https://video.twimg.com/ext_tw_video/1585341912877146112/pu/vid/1920x1080/aeoVUvTgj4wHShhN.mp4?tag=14",
+                          "quality": "1080p",
+                          "download_url": "https://video.twimg.com/ext_tw_video/1585341912877146112/pu/vid/1920x1080/aeoVUvTgj4wHShhN.mp4?tag=14",
+                          "format_id": null,
+                          "height": 1080,
+                          "ext": "mp4",
+                          "bitrate": null
+                        },
+                        {
+                          "type": "video",
+                          "url": "https://video.twimg.com/ext_tw_video/1585341912877146112/pu/vid/1280x720/cwj11yOgYZ05R_sY.mp4?tag=14",
+                          "quality": "720p",
+                          "download_url": "https://video.twimg.com/ext_tw_video/1585341912877146112/pu/vid/1280x720/cwj11yOgYZ05R_sY.mp4?tag=14",
+                          "format_id": null,
+                          "height": 720,
+                          "ext": "mp4",
+                          "bitrate": null
+                        },
+                        {
+                          "type": "video",
+                          "url": "https://video.twimg.com/ext_tw_video/1585341912877146112/pu/vid/640x360/UOvGixKQhzYgqVGG.mp4?tag=14",
+                          "quality": "360p",
+                          "download_url": "https://video.twimg.com/ext_tw_video/1585341912877146112/pu/vid/640x360/UOvGixKQhzYgqVGG.mp4?tag=14",
+                          "format_id": null,
+                          "height": 360,
+                          "ext": "mp4",
+                          "bitrate": null
+                        }
+                      ],
+                      "video_url": "https://video.twimg.com/ext_tw_video/1585341912877146112/pu/vid/1280x720/cwj11yOgYZ05R_sY.mp4?tag=14",
+                      "video_hd_url": "https://video.twimg.com/ext_tw_video/1585341912877146112/pu/vid/1920x1080/aeoVUvTgj4wHShhN.mp4?tag=14",
+                      "music_url": null,
+                      "thumbnail": "https://pbs.twimg.com/ext_tw_video_thumb/1585341912877146112/pu/img/DwJ7wlGIe9iryk6N.jpg",
+                      "duration_sec": 9,
+                      "author": "elonmusk",
+                      "channel_url": null,
+                      "duration_ms": 275
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -G \"https://api.interapi.dev/api/v1/x\" \\\n  --data-urlencode \"url=https://x.com/elonmusk/status/1585341984679469056\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/x\",\n    params={\"url\": \"https://x.com/elonmusk/status/1585341984679469056\"},\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    timeout=60,\n)\nr.raise_for_status()\nprint(r.json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"url\": \"https://x.com/elonmusk/status/1585341984679469056\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/x?${params}`, {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconsole.log(await res.json());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/facebook": {
+      "get": {
+        "tags": [
+          "Facebook"
+        ],
+        "operationId": "getFacebookVideo",
+        "summary": "Download public Facebook videos and Reels in HD and SD",
+        "description": "Works with public Facebook videos in every link format: `facebook.com/watch?v=...`, `/reel/...`, `/<page>/videos/...`, short `fb.watch/...` links and `/share/v/...` share links. Returns HD and SD variants in `media`, `video_hd_url` for the best quality and `video_url` as a fallback, plus title, author and duration. Videos from closed groups and private profiles are not available.\n\n**Price: 5 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free.",
+        "x-credits": 5,
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "Public video link: `facebook.com/watch?v=...`, `/reel/...`, `/videos/...`, `fb.watch/...` or `/share/v/...`.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://www.facebook.com/facebook/videos/10153231379946729/"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Direct media URLs and metadata.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialMediaResponse"
+                },
+                "examples": {
+                  "facebook": {
+                    "summary": "Public video, HD and SD",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "title": "How to share with just friends.",
+                      "description": "How to share with just friends.",
+                      "media": [
+                        {
+                          "type": "video",
+                          "url": "https://video-ams4-1.xx.fbcdn.net/o1/v/t2/f2/m412/AQO00w7g_example_hd.mp4?_nc_cat=101",
+                          "quality": "1280p (HD)",
+                          "download_url": "https://video-ams4-1.xx.fbcdn.net/o1/v/t2/f2/m412/AQO00w7g_example_hd.mp4?_nc_cat=101",
+                          "format_id": null,
+                          "height": 1280,
+                          "ext": "mp4",
+                          "bitrate": null
+                        },
+                        {
+                          "type": "video",
+                          "url": "https://video-ams4-1.xx.fbcdn.net/o1/v/t2/f2/m412/AQPDgRV9_example_sd.mp4?_nc_cat=101",
+                          "quality": "400p (SD)",
+                          "download_url": "https://video-ams4-1.xx.fbcdn.net/o1/v/t2/f2/m412/AQPDgRV9_example_sd.mp4?_nc_cat=101",
+                          "format_id": null,
+                          "height": 400,
+                          "ext": "mp4",
+                          "bitrate": null
+                        }
+                      ],
+                      "video_url": "https://video-ams4-1.xx.fbcdn.net/o1/v/t2/f2/m412/AQPDgRV9_example_sd.mp4?_nc_cat=101",
+                      "video_hd_url": "https://video-ams4-1.xx.fbcdn.net/o1/v/t2/f2/m412/AQO00w7g_example_hd.mp4?_nc_cat=101",
+                      "music_url": null,
+                      "thumbnail": null,
+                      "duration_sec": 74,
+                      "author": "Facebook",
+                      "channel_url": null,
+                      "duration_ms": 1520
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -G \"https://api.interapi.dev/api/v1/facebook\" \\\n  --data-urlencode \"url=https://www.facebook.com/facebook/videos/10153231379946729/\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/facebook\",\n    params={\"url\": \"https://www.facebook.com/facebook/videos/10153231379946729/\"},\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    timeout=60,\n)\nr.raise_for_status()\nprint(r.json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"url\": \"https://www.facebook.com/facebook/videos/10153231379946729/\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/facebook?${params}`, {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconsole.log(await res.json());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/pinterest": {
+      "get": {
+        "tags": [
+          "Pinterest"
+        ],
+        "operationId": "getPinterestMedia",
+        "summary": "Download Pinterest videos, images and GIFs",
+        "description": "Handles Pinterest pins: static images, animated GIFs and video pins. Supports `pin.it` short links and full `pinterest.com/pin/...` URLs. The `media` array lists every available format with a quality label.\n\n**Price: 5 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free.",
+        "x-credits": 5,
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "Public pin link: `pin.it/...` or `pinterest.com/pin/...`.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://pin.it/b8ifFh79b"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Direct media URLs and metadata.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialMediaResponse"
+                },
+                "examples": {
+                  "pinterest": {
+                    "summary": "Video pin",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "title": "Essen bilder | Fotografie ideen kreativ",
+                      "description": "Essen bilder | Fotografie ideen kreativ",
+                      "media": [
+                        {
+                          "type": "video",
+                          "url": "https://v1.pinimg.com/videos/iht/720p/da/6d/14/da6d14c39a57db3db38449309ba9fd03.mp4",
+                          "quality": "720p",
+                          "download_url": null,
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        },
+                        {
+                          "type": "photo",
+                          "url": "https://i.pinimg.com/originals/43/f1/05/43f105c75f87f48522b9aa10383677fc.jpg",
+                          "quality": "cover",
+                          "download_url": null,
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        }
+                      ],
+                      "video_url": "https://v1.pinimg.com/videos/iht/720p/da/6d/14/da6d14c39a57db3db38449309ba9fd03.mp4",
+                      "video_hd_url": "https://v1.pinimg.com/videos/iht/720p/da/6d/14/da6d14c39a57db3db38449309ba9fd03.mp4",
+                      "music_url": null,
+                      "thumbnail": "https://i.pinimg.com/736x/43/f1/05/43f105c75f87f48522b9aa10383677fc.jpg",
+                      "duration_sec": 0,
+                      "author": "",
+                      "channel_url": null,
+                      "duration_ms": 1314
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -G \"https://api.interapi.dev/api/v1/pinterest\" \\\n  --data-urlencode \"url=https://pin.it/b8ifFh79b\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/pinterest\",\n    params={\"url\": \"https://pin.it/b8ifFh79b\"},\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    timeout=60,\n)\nr.raise_for_status()\nprint(r.json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"url\": \"https://pin.it/b8ifFh79b\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/pinterest?${params}`, {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconsole.log(await res.json());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/rutube": {
+      "get": {
+        "tags": [
+          "RuTube"
+        ],
+        "operationId": "getRuTubeVideo",
+        "summary": "Download RuTube videos and Shorts (HLS, up to 1080p)",
+        "description": "Accepts `rutube.ru/video/<id>/` and `rutube.ru/shorts/<id>/` links. RuTube streams video over HLS, so `media` holds one `.m3u8` link per quality (`ext: m3u8`, with `quality` and `height`), best first, plus the cover image with quality `cover`. Any HLS-capable player opens the playlist, and ffmpeg turns it into a file: `ffmpeg -i \"<url>\" -c copy video.mp4`.\n\nAlternatively, [`GET /api/v1/media/file`](#operation/downloadMediaFile) with `source=rutube` returns a ready MP4.\n\n**Price: 5 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free.",
+        "x-credits": 5,
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "RuTube video link: `rutube.ru/video/<id>/` or `rutube.ru/shorts/<id>/`.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://rutube.ru/video/0f774368d3ca94b073c47b6f7536ce8b/"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Direct media URLs and metadata.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialMediaResponse"
+                },
+                "examples": {
+                  "rutube": {
+                    "summary": "Video with HLS qualities",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "title": "Синий трактор По полям | Учим цвета и как говорят животные | Песенки для малышей",
+                      "description": "По полям по полям Синий трактор едет к нам. У него в прицепе кто-то песенку поёт. Развивающая песня мультфильм для самых маленьких.",
+                      "media": [
+                        {
+                          "type": "video",
+                          "url": "https://river-3-371.rtbcdn.ru/hls-vod/rZTEQBljeH0LmW_HXc3D8g/1795533222/1875/video.mp4.m3u8?i=1920x1080_1451",
+                          "quality": "1080p",
+                          "download_url": "https://river-3-371.rtbcdn.ru/hls-vod/rZTEQBljeH0LmW_HXc3D8g/1795533222/1875/video.mp4.m3u8?i=1920x1080_1451",
+                          "format_id": null,
+                          "height": 1080,
+                          "ext": "m3u8",
+                          "bitrate": null
+                        },
+                        {
+                          "type": "video",
+                          "url": "https://river-3-371.rtbcdn.ru/hls-vod/wfaWkE-PHVS60AfOhpUEnw/1795533222/1798/video.mp4.m3u8?i=1280x720_1451",
+                          "quality": "720p",
+                          "download_url": "https://river-3-371.rtbcdn.ru/hls-vod/wfaWkE-PHVS60AfOhpUEnw/1795533222/1798/video.mp4.m3u8?i=1280x720_1451",
+                          "format_id": null,
+                          "height": 720,
+                          "ext": "m3u8",
+                          "bitrate": null
+                        },
+                        {
+                          "type": "photo",
+                          "url": "https://pic.rtbcdn.ru/video/7f/11/7f11fa1b4b6ac3742d4dfe31a7304e68.jpg",
+                          "quality": "cover",
+                          "download_url": "https://pic.rtbcdn.ru/video/7f/11/7f11fa1b4b6ac3742d4dfe31a7304e68.jpg",
+                          "format_id": null,
+                          "height": null,
+                          "ext": null,
+                          "bitrate": null
+                        }
+                      ],
+                      "video_url": "https://river-3-371.rtbcdn.ru/hls-vod/rZTEQBljeH0LmW_HXc3D8g/1795533222/1875/video.mp4.m3u8?i=1920x1080_1451",
+                      "video_hd_url": "https://river-3-371.rtbcdn.ru/hls-vod/rZTEQBljeH0LmW_HXc3D8g/1795533222/1875/video.mp4.m3u8?i=1920x1080_1451",
+                      "music_url": null,
+                      "thumbnail": "https://pic.rtbcdn.ru/video/7f/11/7f11fa1b4b6ac3742d4dfe31a7304e68.jpg",
+                      "duration_sec": 552,
+                      "author": "Синий трактор - Песенки и мультики для детей",
+                      "channel_url": null,
+                      "duration_ms": 8667
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -G \"https://api.interapi.dev/api/v1/rutube\" \\\n  --data-urlencode \"url=https://rutube.ru/video/0f774368d3ca94b073c47b6f7536ce8b/\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/rutube\",\n    params={\"url\": \"https://rutube.ru/video/0f774368d3ca94b073c47b6f7536ce8b/\"},\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    timeout=60,\n)\nr.raise_for_status()\nprint(r.json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"url\": \"https://rutube.ru/video/0f774368d3ca94b073c47b6f7536ce8b/\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/rutube?${params}`, {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconsole.log(await res.json());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/likee": {
+      "get": {
+        "tags": [
+          "Likee"
+        ],
+        "operationId": "getLikeeVideo",
+        "summary": "Download Likee videos",
+        "description": "Accepts full `likee.video/@<author>/video/<id>` links and the `l.likee.video/v/...` short links that the app's Share button produces. Returns a direct MP4 link in `media`, `video_url` and `video_hd_url`, plus the caption (`title`), author, duration and cover image. The response format matches the TikTok endpoint.\n\n**Price: 5 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free.",
+        "x-credits": 5,
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "Likee clip link: `likee.video/@<author>/video/<id>` or a short `l.likee.video/v/...` link.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://l.likee.video/v/a1B2c3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Direct media URLs and metadata.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialMediaResponse"
+                },
+                "examples": {
+                  "likee": {
+                    "summary": "Short video (illustrative response)",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "title": "Танцевальный челлендж 💃 #dance #likee",
+                      "description": "Танцевальный челлендж 💃 #dance #likee",
+                      "media": [
+                        {
+                          "type": "video",
+                          "url": "https://video.like.video/asia_live/example/4h6Kd9_4.mp4",
+                          "quality": "HD",
+                          "download_url": "https://video.like.video/asia_live/example/4h6Kd9_4.mp4",
+                          "format_id": null,
+                          "height": 1280,
+                          "ext": "mp4",
+                          "bitrate": null
+                        }
+                      ],
+                      "video_url": "https://video.like.video/asia_live/example/4h6Kd9_4.mp4",
+                      "video_hd_url": "https://video.like.video/asia_live/example/4h6Kd9_4.mp4",
+                      "music_url": null,
+                      "thumbnail": "https://img.like.video/asia_live/example/cover.jpg",
+                      "duration_sec": 15,
+                      "author": "dance.studio",
+                      "channel_url": null,
+                      "duration_ms": 1050
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -G \"https://api.interapi.dev/api/v1/likee\" \\\n  --data-urlencode \"url=https://l.likee.video/v/a1B2c3\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/likee\",\n    params={\"url\": \"https://l.likee.video/v/a1B2c3\"},\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    timeout=60,\n)\nr.raise_for_status()\nprint(r.json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"url\": \"https://l.likee.video/v/a1B2c3\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/likee?${params}`, {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconsole.log(await res.json());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/youtube/search": {
+      "get": {
+        "tags": [
+          "YouTube Search"
+        ],
+        "operationId": "searchYouTube",
+        "summary": "Search YouTube and YouTube Music",
+        "description": "Compact YouTube search. The `filter` parameter mirrors YouTube filters: `video`, `music` (YouTube Music), `playlist`, `channel`, `live`, `shorts` or `all`. Each result has `title`, `url`, `author`, `thumbnail`, `duration_sec` and `kind`. Results of identical queries are cached for 30 minutes.\n\n**Price: 6 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free.",
+        "x-credits": 6,
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "description": "Search query (title, artist, channel).",
+            "schema": {
+              "type": "string",
+              "minLength": 2
+            },
+            "example": "macan"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "required": false,
+            "description": "What to search for. Default `video`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "video",
+                "music",
+                "playlist",
+                "channel",
+                "live",
+                "shorts",
+                "all"
+              ],
+              "default": "video"
+            },
+            "example": "music"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "How many results to return (1-99).",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 99,
+              "default": 99
+            },
+            "example": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of search results.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YouTubeSearchResponse"
+                },
+                "examples": {
+                  "music": {
+                    "summary": "Music search",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "query": "macan",
+                      "filter": "music",
+                      "count": 3,
+                      "results": [
+                        {
+                          "id": "xw0jBxOvcN4",
+                          "title": "Macan",
+                          "url": "https://music.youtube.com/watch?v=xw0jBxOvcN4",
+                          "author": "BakaPrase",
+                          "channel_url": null,
+                          "duration_sec": 176,
+                          "thumbnail": "https://yt3.googleusercontent.com/Ai3luxOvMPk4rbb40h-OGTYxGYr6nIC7fyQxMmWcxllnveyi9J260l8-05bZp5itADkVa1Y4mk-sN2PW6g=w120-h120-l90-rj",
+                          "kind": "audio",
+                          "is_music": true,
+                          "view_count": null
+                        },
+                        {
+                          "id": "N4iwcLUTz2c",
+                          "title": "Jet",
+                          "url": "https://music.youtube.com/watch?v=N4iwcLUTz2c",
+                          "author": "MACAN",
+                          "channel_url": null,
+                          "duration_sec": 120,
+                          "thumbnail": "https://yt3.googleusercontent.com/C--H74V1y10M_e97V7qIxXRby29HAFh4ZUg42NIYeBWgS-foeb840XUags7fHyQFRE3g13LFkjNCZUO8=w120-h120-l90-rj",
+                          "kind": "audio",
+                          "is_music": true,
+                          "view_count": null
+                        },
+                        {
+                          "id": "VNHfobG7f1c",
+                          "title": "Macan ii dhunko",
+                          "url": "https://music.youtube.com/watch?v=VNHfobG7f1c",
+                          "author": "Ilkacase Qays",
+                          "channel_url": null,
+                          "duration_sec": 181,
+                          "thumbnail": "https://yt3.googleusercontent.com/B_DLMNMi4c6sDAPWfxN1OR2mc0j1wvO5oYL4pXzZ3QR262hgjqO4FfjA_UiRK-mVB3Fh9enTh5hqPSdo=w120-h120-l90-rj",
+                          "kind": "audio",
+                          "is_music": true,
+                          "view_count": null
+                        }
+                      ],
+                      "duration_ms": 686
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -G \"https://api.interapi.dev/api/v1/youtube/search\" \\\n  --data-urlencode \"q=macan\" \\\n  --data-urlencode \"filter=music\" \\\n  --data-urlencode \"limit=3\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/youtube/search\",\n    params={\"q\": \"macan\", \"filter\": \"music\", \"limit\": \"3\"},\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    timeout=60,\n)\nr.raise_for_status()\nprint(r.json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"q\": \"macan\", \"filter\": \"music\", \"limit\": \"3\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/youtube/search?${params}`, {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconsole.log(await res.json());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/shazam": {
+      "get": {
+        "tags": [
+          "Shazam"
+        ],
+        "operationId": "recognizeShazamFromUrl",
+        "summary": "Recognize a song from an audio or video URL",
+        "description": "Pass a direct link to an audio or video file.\n\nIdentifies a song from a short audio or video fragment. The server extracts several mono 16 kHz clips with ffmpeg and recognises them with Shazam. The answer contains `title`, `artist`, `album`, `coverart`, `shazam_url`, `isrc` and a ready `label`. When nothing is recognised the HTTP status is still `200` and the body has `found: false` / `status: \"not_found\"`.\n\n**Price: 5 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free.",
+        "x-credits": 5,
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "Direct HTTPS link to an audio or video file. Works with `music_url` from the TikTok / Instagram endpoints or any direct MP3 / MP4 / M4A link.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/52/ee/37/52ee37af-d111-ccd6-96eb-fb5bd39cdb46/mzaf_8486592865517765511.plus.aac.p.m4a"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recognition result (`found: true` or `found: false`).",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShazamResponse"
+                },
+                "examples": {
+                  "found": {
+                    "summary": "Track recognised",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "found": true,
+                      "track": {
+                        "title": "Как же (feat. Kiliana)",
+                        "artist": "MACAN",
+                        "album": "I AM",
+                        "coverart": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/91/47/98/9147988a-4ae9-d1e6-893e-261111df8328/cover.jpg/400x400cc.jpg",
+                        "shazam_url": "https://www.shazam.com/track/707971235/%D0%BA%D0%B0%D0%BA-%D0%B6%D0%B5-feat-kiliana",
+                        "isrc": "DGA072443832",
+                        "key": "707971235",
+                        "label": "MACAN - Как же (feat. Kiliana)"
+                      },
+                      "duration_ms": 1325
+                    }
+                  },
+                  "not_found": {
+                    "summary": "Nothing recognised (still HTTP 200)",
+                    "value": {
+                      "status": "not_found",
+                      "platform": "InterAPI",
+                      "found": false,
+                      "track": null,
+                      "duration_ms": 2410
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -G \"https://api.interapi.dev/api/v1/shazam\" \\\n  --data-urlencode \"url=https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/52/ee/37/52ee37af-d111-ccd6-96eb-fb5bd39cdb46/mzaf_8486592865517765511.plus.aac.p.m4a\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/shazam\",\n    params={\"url\": \"https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/52/ee/37/52ee37af-d111-ccd6-96eb-fb5bd39cdb46/mzaf_8486592865517765511.plus.aac.p.m4a\"},\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    timeout=60,\n)\nr.raise_for_status()\nprint(r.json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"url\": \"https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/52/ee/37/52ee37af-d111-ccd6-96eb-fb5bd39cdb46/mzaf_8486592865517765511.plus.aac.p.m4a\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/shazam?${params}`, {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconsole.log(await res.json());\n"
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Shazam"
+        ],
+        "operationId": "recognizeShazamFromFile",
+        "summary": "Recognize a song from an uploaded audio or video file",
+        "description": "Upload a file as `multipart/form-data` (field `file`). Allowed formats: MP3, MP4, M4A, AAC, OGG, WebM, WAV, FLAC, MKV, MOV. Maximum size 50 MB.\n\nIdentifies a song from a short audio or video fragment. The server extracts several mono 16 kHz clips with ffmpeg and recognises them with Shazam. The answer contains `title`, `artist`, `album`, `coverart`, `shazam_url`, `isrc` and a ready `label`. When nothing is recognised the HTTP status is still `200` and the body has `found: false` / `status: \"not_found\"`.\n\n**Price: 5 credits** per successful request. A `4xx` answer costs at most 1 credit, a `5xx` answer is free.",
+        "x-credits": 5,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Audio or video file (max 50 MB)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recognition result (`found: true` or `found: false`).",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-Request-Cost": {
+                "$ref": "#/components/headers/X-Request-Cost"
+              },
+              "X-Balance-Remaining": {
+                "$ref": "#/components/headers/X-Balance-Remaining"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShazamResponse"
+                },
+                "examples": {
+                  "found": {
+                    "summary": "Track recognised",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "found": true,
+                      "track": {
+                        "title": "Как же (feat. Kiliana)",
+                        "artist": "MACAN",
+                        "album": "I AM",
+                        "coverart": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/91/47/98/9147988a-4ae9-d1e6-893e-261111df8328/cover.jpg/400x400cc.jpg",
+                        "shazam_url": "https://www.shazam.com/track/707971235/%D0%BA%D0%B0%D0%BA-%D0%B6%D0%B5-feat-kiliana",
+                        "isrc": "DGA072443832",
+                        "key": "707971235",
+                        "label": "MACAN - Как же (feat. Kiliana)"
+                      },
+                      "duration_ms": 1325
+                    }
+                  },
+                  "not_found": {
+                    "summary": "Nothing recognised (still HTTP 200)",
+                    "value": {
+                      "status": "not_found",
+                      "platform": "InterAPI",
+                      "found": false,
+                      "track": null,
+                      "duration_ms": 2410
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"https://api.interapi.dev/api/v1/shazam\" \\\n  -H \"X-API-Key: YOUR_API_KEY\" \\\n  -F \"file=@clip.mp3\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nwith open(\"clip.mp3\", \"rb\") as f:\n    r = requests.post(\n        \"https://api.interapi.dev/api/v1/shazam\",\n        headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n        files={\"file\": f},\n        timeout=120,\n    )\nr.raise_for_status()\nprint(r.json()[\"track\"])\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "import { openAsBlob } from \"node:fs\";\n\nconst form = new FormData();\nform.append(\"file\", await openAsBlob(\"clip.mp3\"), \"clip.mp3\");\nconst res = await fetch(\"https://api.interapi.dev/api/v1/shazam\", {\n  method: \"POST\",\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n  body: form,\n});\nconsole.log(await res.json());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/youtube/file": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "operationId": "downloadYouTubeFile",
+        "summary": "Download a YouTube audio or video file",
+        "description": "Returns the media file itself instead of a CDN link. With `mode=auto` (default) the request is answered with a `307` redirect to the fastest working CDN URL; with `mode=file` the file is proxied or downloaded by the server and streamed in the response body. Use `kind=audio` for M4A/MP3 and `kind=video` for MP4.\n\n**Free:** file downloads cost no credits (the metadata request that produced the link was already charged). A valid API key is still required - pass it as the `api` query parameter when the client cannot send headers, e.g. Telegram fetching a file by URL.",
+        "x-credits": 0,
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "YouTube or YouTube Music link.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://youtu.be/UFk4_Ybx7yk"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "description": "Audio or video stream.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "audio",
+                "video"
+              ],
+              "default": "audio"
+            },
+            "example": "audio"
+          },
+          {
+            "name": "format_id",
+            "in": "query",
+            "required": false,
+            "description": "Format id (`format_id` / itag from `GET /api/v1/youtube`) or `best`.",
+            "schema": {
+              "type": "string",
+              "default": "best"
+            },
+            "example": "best"
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "description": "`auto` - redirect to the CDN; `file` - stream the file through InterAPI.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "auto",
+                "file"
+              ],
+              "default": "auto"
+            },
+            "example": "auto"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The media file (`mode=file`).",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "audio/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "audio/mpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "audio/webm": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "video/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "video/webm": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "307": {
+            "description": "Redirect to the CDN file (`mode=auto`). Follow it (`curl -L`).",
+            "headers": {
+              "Location": {
+                "description": "CDN URL of the file.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -L -G \"https://api.interapi.dev/api/v1/youtube/file\" \\\n  --data-urlencode \"url=https://youtu.be/UFk4_Ybx7yk\" \\\n  --data-urlencode \"kind=audio\" \\\n  --data-urlencode \"api=YOUR_API_KEY\" \\\n  -o download.bin"
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/youtube/file\",\n    params={\"url\": \"https://youtu.be/UFk4_Ybx7yk\", \"kind\": \"audio\", \"api\": \"YOUR_API_KEY\"},\n    stream=True,\n    timeout=120,\n)\nr.raise_for_status()\nwith open(\"download.bin\", \"wb\") as f:\n    for chunk in r.iter_content(1 << 16):\n        f.write(chunk)\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"url\": \"https://youtu.be/UFk4_Ybx7yk\", \"kind\": \"audio\", \"api\": \"YOUR_API_KEY\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/youtube/file?${params}`);\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconst file = Buffer.from(await res.arrayBuffer());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/media/file": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "operationId": "downloadMediaFile",
+        "summary": "Download the media file of an Instagram, TikTok, Pinterest, Likee, X, Facebook or RuTube post",
+        "description": "Streams the best video (or photo) of a post as a regular file with `Content-Length`, so clients that cannot open the CDN link directly (Telegram bots, browsers with hotlink protection) can use a plain URL. For RuTube the HLS stream is remuxed to MP4 on the fly (without `Content-Length`).\n\nProvide either `source` + `url` or the short token `p`.\n\n**Free:** file downloads cost no credits (the metadata request that produced the link was already charged). A valid API key is still required - pass it as the `api` query parameter when the client cannot send headers, e.g. Telegram fetching a file by URL.",
+        "x-credits": 0,
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "description": "Platform of the link. Use together with `url`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "instagram",
+                "tiktok",
+                "pinterest",
+                "likee",
+                "x",
+                "facebook",
+                "rutube"
+              ]
+            },
+            "example": "tiktok"
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "description": "Original post URL. Use together with `source`.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://vt.tiktok.com/ZSQrfS4U7/"
+          },
+          {
+            "name": "p",
+            "in": "query",
+            "required": false,
+            "description": "Short token that encodes `source` and `url`. Alternative to passing `source` + `url`.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The media file.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "video/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -L -G \"https://api.interapi.dev/api/v1/media/file\" \\\n  --data-urlencode \"source=tiktok\" \\\n  --data-urlencode \"url=https://vt.tiktok.com/ZSQrfS4U7/\" \\\n  --data-urlencode \"api=YOUR_API_KEY\" \\\n  -o download.bin"
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/media/file\",\n    params={\"source\": \"tiktok\", \"url\": \"https://vt.tiktok.com/ZSQrfS4U7/\", \"api\": \"YOUR_API_KEY\"},\n    stream=True,\n    timeout=120,\n)\nr.raise_for_status()\nwith open(\"download.bin\", \"wb\") as f:\n    for chunk in r.iter_content(1 << 16):\n        f.write(chunk)\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"source\": \"tiktok\", \"url\": \"https://vt.tiktok.com/ZSQrfS4U7/\", \"api\": \"YOUR_API_KEY\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/media/file?${params}`);\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconst file = Buffer.from(await res.arrayBuffer());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/media/thumb": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "operationId": "downloadMediaThumbnail",
+        "summary": "Download the thumbnail image of a post",
+        "description": "Returns the cover image of a post as an image file.\n\nProvide either `source` + `url` or the short token `p`.\n\n**Free:** file downloads cost no credits (the metadata request that produced the link was already charged). A valid API key is still required - pass it as the `api` query parameter when the client cannot send headers, e.g. Telegram fetching a file by URL.",
+        "x-credits": 0,
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "description": "Platform of the link. Use together with `url`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "instagram",
+                "tiktok",
+                "pinterest",
+                "likee",
+                "x",
+                "facebook",
+                "rutube"
+              ]
+            },
+            "example": "tiktok"
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "description": "Original post URL. Use together with `source`.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "https://vt.tiktok.com/ZSQrfS4U7/"
+          },
+          {
+            "name": "p",
+            "in": "query",
+            "required": false,
+            "description": "Short token that encodes `source` and `url`. Alternative to passing `source` + `url`.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The thumbnail image.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -L -G \"https://api.interapi.dev/api/v1/media/thumb\" \\\n  --data-urlencode \"source=tiktok\" \\\n  --data-urlencode \"url=https://vt.tiktok.com/ZSQrfS4U7/\" \\\n  --data-urlencode \"api=YOUR_API_KEY\" \\\n  -o download.bin"
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\n    \"https://api.interapi.dev/api/v1/media/thumb\",\n    params={\"source\": \"tiktok\", \"url\": \"https://vt.tiktok.com/ZSQrfS4U7/\", \"api\": \"YOUR_API_KEY\"},\n    stream=True,\n    timeout=120,\n)\nr.raise_for_status()\nwith open(\"download.bin\", \"wb\") as f:\n    for chunk in r.iter_content(1 << 16):\n        f.write(chunk)\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const params = new URLSearchParams({\"source\": \"tiktok\", \"url\": \"https://vt.tiktok.com/ZSQrfS4U7/\", \"api\": \"YOUR_API_KEY\"});\nconst res = await fetch(`https://api.interapi.dev/api/v1/media/thumb?${params}`);\nif (!res.ok) throw new Error(`HTTP ${res.status}`);\nconst file = Buffer.from(await res.arrayBuffer());\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/account": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "getAccount",
+        "summary": "Get balance, plan, per-endpoint prices and usage of the API key",
+        "description": "Returns the credit balance, the plan, the price list in credits and the hourly / monthly usage of the key used for the request. **Free:** it never charges credits and does not count against the hourly limit.",
+        "x-credits": 0,
+        "responses": {
+          "200": {
+            "description": "Account information.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                },
+                "examples": {
+                  "free": {
+                    "summary": "Free-plan key",
+                    "value": {
+                      "status": "success",
+                      "platform": "InterAPI",
+                      "master": false,
+                      "key": {
+                        "prefix": "ia_live_a1b2c3d4",
+                        "label": "default",
+                        "request_count": 42,
+                        "created_at": "2026-11-01T10:15:00+00:00",
+                        "last_used_at": "2026-11-17T15:10:42+00:00"
+                      },
+                      "plan": {
+                        "id": "free",
+                        "name": "Free Test",
+                        "hourly_limit": 30,
+                        "monthly_limit": null,
+                        "unlimited": false
+                      },
+                      "balance": 748,
+                      "cost_per_request": 5,
+                      "costs": {
+                        "youtube_search": 6,
+                        "youtube": 15,
+                        "instagram": 6,
+                        "tiktok": 6,
+                        "pinterest": 5,
+                        "likee": 5,
+                        "x": 5,
+                        "facebook": 5,
+                        "rutube": 5,
+                        "shazam": 5
+                      },
+                      "usage": {
+                        "hourly_used": 7,
+                        "hourly_limit": 30,
+                        "hourly_remaining": 23,
+                        "hourly_reset": 1795014000,
+                        "month": 42,
+                        "total": 42
+                      },
+                      "duration_ms": 4
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl \"https://api.interapi.dev/api/v1/account\" \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nr = requests.get(\"https://api.interapi.dev/api/v1/account\", headers={\"X-API-Key\": \"YOUR_API_KEY\"}, timeout=30)\nprint(r.json()[\"balance\"])\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "const res = await fetch(\"https://api.interapi.dev/api/v1/account\", {\n  headers: { \"X-API-Key\": \"YOUR_API_KEY\" },\n});\nconsole.log((await res.json()).balance);\n"
+          }
+        ]
+      }
+    },
+    "/api/v1/catalog": {
+      "get": {
+        "tags": [
+          "Service"
+        ],
+        "operationId": "getCatalog",
+        "summary": "List all APIs with paths and prices",
+        "description": "Machine-readable catalog of the download / search / recognition APIs with method, path, example and price in credits. **No API key required.** Descriptions are returned in Russian.",
+        "x-credits": 0,
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API catalog.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogResponse"
+                },
+                "examples": {
+                  "default": {
+                    "summary": "Catalog (truncated)",
+                    "value": {
+                      "apis": [
+                        {
+                          "id": "instagram",
+                          "name": "Instagram Media",
+                          "description": "Скачивание видео и фото из публичных постов, reels и каруселей Instagram.",
+                          "method": "GET",
+                          "path": "/api/v1/instagram",
+                          "tags": [
+                            "social",
+                            "download"
+                          ],
+                          "example": "/api/v1/instagram?url=https://www.instagram.com/reel/XXXX/",
+                          "cost": 6
+                        },
+                        {
+                          "id": "youtube-search",
+                          "name": "YouTube Search",
+                          "description": "Поиск по YouTube и YouTube Music: video, music, playlist, channel, live, shorts.",
+                          "method": "GET",
+                          "path": "/api/v1/youtube/search",
+                          "tags": [
+                            "youtube",
+                            "search"
+                          ],
+                          "example": "/api/v1/youtube/search?q=macan&filter=music&limit=99",
+                          "cost": 6
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl \"https://api.interapi.dev/api/v1/catalog\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nprint(requests.get(\"https://api.interapi.dev/api/v1/catalog\", timeout=30).json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "console.log(await (await fetch(\"https://api.interapi.dev/api/v1/catalog\")).json());\n"
+          }
+        ]
+      }
+    },
+    "/api/status": {
+      "get": {
+        "tags": [
+          "Service"
+        ],
+        "operationId": "getStatus",
+        "summary": "Public per-endpoint status for the last 24 hours",
+        "description": "Status of every API computed from the last 24 hours of real traffic: `operational`, `degraded` (>= 10 % server errors) or `down` (>= 50 %). **No API key required.** Human-readable page: <https://interapi.dev/en/status/>.",
+        "x-credits": 0,
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Overall and per-service status.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                },
+                "examples": {
+                  "operational": {
+                    "summary": "All systems operational (truncated)",
+                    "value": {
+                      "status": "operational",
+                      "services": [
+                        {
+                          "id": "instagram",
+                          "name": "Instagram Media",
+                          "path": "/api/v1/instagram",
+                          "status": "operational",
+                          "requests_24h": 998,
+                          "errors_24h": 3,
+                          "success_rate": 99.7
+                        },
+                        {
+                          "id": "tiktok",
+                          "name": "TikTok Video",
+                          "path": "/api/v1/tiktok",
+                          "status": "operational",
+                          "requests_24h": 1274,
+                          "errors_24h": 10,
+                          "success_rate": 99.2
+                        },
+                        {
+                          "id": "shazam",
+                          "name": "Shazam Recognition",
+                          "path": "/api/v1/shazam",
+                          "status": "operational",
+                          "requests_24h": 0,
+                          "errors_24h": 0,
+                          "success_rate": null
+                        }
+                      ],
+                      "updated_at": "2026-11-17T15:13:19.758191+00:00"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl \"https://api.interapi.dev/api/status\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nprint(requests.get(\"https://api.interapi.dev/api/status\", timeout=30).json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "console.log(await (await fetch(\"https://api.interapi.dev/api/status\")).json());\n"
+          }
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "Service"
+        ],
+        "operationId": "getHealth",
+        "summary": "Health check",
+        "description": "Liveness probe of the API, cache and database. **No API key required.**",
+        "x-credits": 0,
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The service is up.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "summary": "Healthy",
+                    "value": {
+                      "status": "ok",
+                      "service": "interapi",
+                      "cache": "redis",
+                      "db": "ok",
+                      "redis": "ok"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "5XX": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl \"https://api.interapi.dev/api/health\""
+          },
+          {
+            "lang": "Python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nprint(requests.get(\"https://api.interapi.dev/api/health\", timeout=30).json())\n"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js / browser (fetch)",
+            "source": "console.log(await (await fetch(\"https://api.interapi.dev/api/health\")).json());\n"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Your API key, e.g. `ia_live_...`. Get a key with 1,000 free credits at <https://interapi.dev/>. Send it in the `X-API-Key` header."
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "ia_live_...",
+        "description": "The same key as `Authorization: Bearer ia_live_...`."
+      },
+      "ApiKeyQuery": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "api",
+        "description": "The same key as the `?api=ia_live_...` query parameter (`api_key` is accepted too). Use it when a third-party client fetches a URL without custom headers, e.g. Telegram downloading a file. Never expose it in public front-end code."
+      }
+    },
+    "headers": {
+      "X-Request-Id": {
+        "description": "Unique id of the request. Send your own `X-Request-Id` to correlate logs.",
+        "schema": {
+          "type": "string"
+        },
+        "example": "d33641f69d264233b867da8081d6fcca"
+      },
+      "X-Request-Cost": {
+        "description": "Credits charged for this request (`0` for free answers and unlimited keys).",
+        "schema": {
+          "type": "integer"
+        },
+        "example": 6
+      },
+      "X-Balance-Remaining": {
+        "description": "Credit balance after this request.",
+        "schema": {
+          "type": "integer"
+        },
+        "example": 994
+      },
+      "X-RateLimit-Limit": {
+        "description": "Requests allowed per hour. Sent only for accounts with an hourly limit (free credits before the first top-up).",
+        "schema": {
+          "type": "integer"
+        },
+        "example": 30
+      },
+      "X-RateLimit-Remaining": {
+        "description": "Requests left in the current hourly window.",
+        "schema": {
+          "type": "integer"
+        },
+        "example": 23
+      },
+      "X-RateLimit-Reset": {
+        "description": "Unix time when the hourly window resets.",
+        "schema": {
+          "type": "integer"
+        },
+        "example": 1795014000
+      },
+      "Retry-After": {
+        "description": "Seconds to wait before retrying.",
+        "schema": {
+          "type": "integer"
+        },
+        "example": 120
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid or unsupported link (or a missing / malformed parameter). Costs at most 1 credit.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "invalid_url": {
+                "summary": "Link does not belong to the platform",
+                "value": {
+                  "detail": "Invalid TikTok URL",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              },
+              "unsupported": {
+                "summary": "`/api/v1/auto` got an unknown link",
+                "value": {
+                  "detail": "Unsupported link: expected an Instagram, TikTok, Pinterest, YouTube, Likee, X, Facebook or RuTube URL",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/X-Request-Id"
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "API key is missing or invalid. Free of charge.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "missing": {
+                "summary": "No key sent",
+                "value": {
+                  "detail": "API key required. Pass ?api=YOUR_KEY in query string or X-API-Key header. Get a key at interapi.dev/dashboard",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              },
+              "invalid": {
+                "summary": "Unknown or revoked key",
+                "value": {
+                  "detail": "Invalid API key",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/X-Request-Id"
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "Not enough credits for this request. Top up at https://interapi.dev/en/pricing/.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "balance": {
+                "summary": "Out of credits",
+                "value": {
+                  "detail": "Insufficient balance: this request costs 6 credits, balance 2. Top up at interapi.dev/pricing",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/X-Request-Id"
+          },
+          "X-Request-Cost": {
+            "description": "Price of the rejected request in credits.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Private content, or the account is disabled.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "private": {
+                "summary": "Private post",
+                "value": {
+                  "detail": "Instagram: this content is private",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              },
+              "inactive": {
+                "summary": "Disabled account",
+                "value": {
+                  "detail": "Account inactive",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/X-Request-Id"
+          }
+        }
+      },
+      "NotFound": {
+        "description": "The post was not found (deleted, private or unavailable). Costs at most 1 credit.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "not_found": {
+                "summary": "Post not found",
+                "value": {
+                  "detail": "Instagram: media not found — the post may be deleted, private or unavailable",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/X-Request-Id"
+          }
+        }
+      },
+      "ValidationFailed": {
+        "description": "A required query parameter is missing or invalid. Not charged.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "examples": {
+              "missing": {
+                "summary": "Missing `url`",
+                "value": {
+                  "detail": [
+                    {
+                      "type": "missing",
+                      "loc": [
+                        "query",
+                        "url"
+                      ],
+                      "msg": "Field required",
+                      "input": null
+                    }
+                  ],
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/X-Request-Id"
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Hourly limit of the free credits reached (30 requests per hour until the first top-up), or the source platform is rate limiting. Retry after the number of seconds in `Retry-After`.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "hourly": {
+                "summary": "Hourly limit",
+                "value": {
+                  "detail": "Hourly limit (30 req/h) reached. Top up once to remove it: interapi.dev/pricing",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              },
+              "upstream": {
+                "summary": "Source platform throttling",
+                "value": {
+                  "detail": "TikTok: upstream rate limit reached, retry in a few seconds",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/X-Request-Id"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          },
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          }
+        }
+      },
+      "BadGateway": {
+        "description": "The source platform is temporarily unavailable. **Free of charge** - retry in a few seconds.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "unavailable": {
+                "summary": "Upstream error",
+                "value": {
+                  "detail": "TikTok is temporarily unavailable, try again later",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/X-Request-Id"
+          }
+        }
+      },
+      "ServerError": {
+        "description": "Server error on our side. **Free of charge.**",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "error": {
+                "summary": "Internal error",
+                "value": {
+                  "detail": "Internal Server Error",
+                  "request_id": "d33641f69d264233b867da8081d6fcca"
+                }
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/X-Request-Id"
+          }
+        }
+      }
+    },
+    "schemas": {
+      "MediaItem": {
+        "type": "object",
+        "description": "One downloadable file: a video, a photo or an audio track.",
+        "required": [
+          "type",
+          "url"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "video",
+              "photo",
+              "audio"
+            ],
+            "description": "Kind of file."
+          },
+          "url": {
+            "type": "string",
+            "description": "Direct URL of the file on the platform CDN. Signed links expire - download soon after the request."
+          },
+          "quality": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Human-readable quality label, e.g. `HD`, `720p`, `1440x1440`, `mp4 (720p) avc1`, `MP3`, `cover`.",
+            "examples": [
+              "HD"
+            ]
+          },
+          "download_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Alternative proxy download link when the platform offers one."
+          },
+          "format_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Format id (itag for YouTube). Pass it as `format_id` to `GET /api/v1/youtube/file`.",
+            "examples": [
+              "140"
+            ]
+          },
+          "height": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Frame height in pixels (video only).",
+            "examples": [
+              720
+            ]
+          },
+          "ext": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "File extension: `mp4`, `webm`, `m4a`, `opus`, `m3u8`, ...",
+            "examples": [
+              "mp4"
+            ]
+          },
+          "bitrate": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Bitrate in bit/s when known.",
+            "examples": [
+              133491
+            ]
+          }
+        }
+      },
+      "SocialMediaResponse": {
+        "type": "object",
+        "description": "Metadata and direct media URLs of a post. Returned by every platform download endpoint.",
+        "required": [
+          "status",
+          "platform",
+          "title",
+          "description",
+          "media",
+          "video_url",
+          "video_hd_url",
+          "music_url",
+          "thumbnail",
+          "duration_sec",
+          "author",
+          "channel_url",
+          "duration_ms"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "success",
+            "description": "Always `success` for a 200 answer."
+          },
+          "platform": {
+            "type": "string",
+            "description": "Always `InterAPI`.",
+            "examples": [
+              "InterAPI"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "Title or caption of the post. Empty string when the platform has none."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description or caption text."
+          },
+          "media": {
+            "type": "array",
+            "description": "All downloadable files of the post, best quality first.",
+            "items": {
+              "$ref": "#/components/schemas/MediaItem"
+            }
+          },
+          "video_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Main video URL (a variant up to 720p when several exist). `null` when the post has no video."
+          },
+          "video_hd_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Best-quality video URL. `null` when the post has no video."
+          },
+          "music_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Separate MP3 audio track (TikTok). `null` otherwise."
+          },
+          "thumbnail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cover / preview image URL."
+          },
+          "duration_sec": {
+            "type": "integer",
+            "description": "Duration in seconds; `0` when unknown."
+          },
+          "author": {
+            "type": "string",
+            "description": "Author name or handle. Empty string when unknown."
+          },
+          "channel_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Author's channel / profile URL when available."
+          },
+          "duration_ms": {
+            "type": "integer",
+            "description": "Server processing time in milliseconds."
+          }
+        }
+      },
+      "AutoMediaResponse": {
+        "description": "Same shape as the matching platform endpoint plus `source`.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SocialMediaResponse"
+          },
+          {
+            "type": "object",
+            "required": [
+              "source"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "enum": [
+                  "instagram",
+                  "tiktok",
+                  "pinterest",
+                  "youtube",
+                  "likee",
+                  "x",
+                  "facebook",
+                  "rutube"
+                ],
+                "description": "Platform detected from the link."
+              }
+            }
+          }
+        ]
+      },
+      "YouTubeSearchItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "url",
+          "author",
+          "channel_url",
+          "duration_sec",
+          "thumbnail",
+          "kind",
+          "is_music",
+          "view_count"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "YouTube video / playlist / channel id."
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "Link to the item on YouTube or YouTube Music. Pass it to `GET /api/v1/youtube`."
+          },
+          "author": {
+            "type": "string",
+            "description": "Channel or artist name."
+          },
+          "channel_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "duration_sec": {
+            "type": "integer",
+            "description": "Duration in seconds; `0` for channels and live streams."
+          },
+          "thumbnail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "video",
+              "audio",
+              "playlist",
+              "channel",
+              "live"
+            ]
+          },
+          "is_music": {
+            "type": "boolean",
+            "description": "`true` for YouTube Music results."
+          },
+          "view_count": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      },
+      "YouTubeSearchResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "platform",
+          "query",
+          "filter",
+          "count",
+          "results",
+          "duration_ms"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "success"
+          },
+          "platform": {
+            "type": "string",
+            "examples": [
+              "InterAPI"
+            ]
+          },
+          "query": {
+            "type": "string",
+            "description": "The normalised search query."
+          },
+          "filter": {
+            "type": "string",
+            "enum": [
+              "video",
+              "music",
+              "playlist",
+              "channel",
+              "live",
+              "shorts",
+              "all"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "description": "Number of results returned."
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/YouTubeSearchItem"
+            }
+          },
+          "duration_ms": {
+            "type": "integer",
+            "description": "Server processing time in milliseconds."
+          }
+        }
+      },
+      "ShazamTrack": {
+        "type": "object",
+        "required": [
+          "title",
+          "artist",
+          "album",
+          "coverart",
+          "shazam_url",
+          "isrc",
+          "key",
+          "label"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "album": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "coverart": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cover art URL."
+          },
+          "shazam_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Track page on Shazam."
+          },
+          "isrc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "International Standard Recording Code."
+          },
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Shazam track key."
+          },
+          "label": {
+            "type": "string",
+            "description": "`Artist - Title`, or just the title."
+          }
+        }
+      },
+      "ShazamResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "platform",
+          "found",
+          "track",
+          "duration_ms"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success",
+              "not_found"
+            ]
+          },
+          "platform": {
+            "type": "string",
+            "examples": [
+              "InterAPI"
+            ]
+          },
+          "found": {
+            "type": "boolean",
+            "description": "`true` when a track was recognised."
+          },
+          "track": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ShazamTrack"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Recognised track, `null` when `found` is `false`."
+          },
+          "duration_ms": {
+            "type": "integer",
+            "description": "Server processing time in milliseconds."
+          }
+        }
+      },
+      "AccountResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "platform",
+          "master",
+          "key",
+          "plan",
+          "balance",
+          "cost_per_request",
+          "costs",
+          "usage",
+          "duration_ms"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "success"
+          },
+          "platform": {
+            "type": "string",
+            "examples": [
+              "InterAPI"
+            ]
+          },
+          "master": {
+            "type": "boolean",
+            "description": "`true` for internal unlimited keys."
+          },
+          "key": {
+            "type": "object",
+            "required": [
+              "prefix",
+              "label"
+            ],
+            "properties": {
+              "prefix": {
+                "type": "string",
+                "description": "First characters of the key (the rest is never shown)."
+              },
+              "label": {
+                "type": "string"
+              },
+              "request_count": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Requests made with this key."
+              },
+              "created_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "last_used_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              }
+            }
+          },
+          "plan": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "unlimited"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "examples": [
+                  "free"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "examples": [
+                  "Free Test"
+                ]
+              },
+              "hourly_limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Requests per hour for plans with a limit (free credits: 30), otherwise `null`."
+              },
+              "monthly_limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "unlimited": {
+                "type": "boolean"
+              }
+            }
+          },
+          "balance": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Remaining credits. `null` for unlimited keys."
+          },
+          "cost_per_request": {
+            "type": "integer",
+            "description": "The lowest price of a request in credits."
+          },
+          "costs": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Price in credits per API, e.g. `{\"instagram\": 6, \"youtube\": 15}`."
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "hourly_used": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "hourly_limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "hourly_remaining": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "hourly_reset": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Unix time when the hourly window resets."
+              },
+              "month": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Requests this month."
+              },
+              "total": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Requests in total."
+              }
+            }
+          },
+          "duration_ms": {
+            "type": "integer"
+          }
+        }
+      },
+      "CatalogItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "method",
+          "path"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "description": "Short description (Russian)."
+          },
+          "method": {
+            "type": "string",
+            "examples": [
+              "GET"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "examples": [
+              "/api/v1/instagram"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "example": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cost": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Price in credits (`/api/v1/auto` - same as the detected platform)."
+          }
+        }
+      },
+      "CatalogResponse": {
+        "type": "object",
+        "required": [
+          "apis"
+        ],
+        "properties": {
+          "apis": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogItem"
+            }
+          }
+        }
+      },
+      "ServiceStatus": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "path",
+          "status",
+          "requests_24h",
+          "errors_24h",
+          "success_rate"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "operational",
+              "degraded",
+              "down"
+            ]
+          },
+          "requests_24h": {
+            "type": "integer"
+          },
+          "errors_24h": {
+            "type": "integer",
+            "description": "5xx answers in the last 24 hours."
+          },
+          "success_rate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Percent of non-5xx answers, `null` without traffic."
+          }
+        }
+      },
+      "StatusResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "services",
+          "updated_at"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "operational",
+              "degraded",
+              "down"
+            ]
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceStatus"
+            }
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "service"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "examples": [
+              "ok"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "examples": [
+              "interapi"
+            ]
+          },
+          "cache": {
+            "type": "string",
+            "examples": [
+              "redis"
+            ]
+          },
+          "db": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error"
+            ]
+          },
+          "redis": {
+            "type": "string",
+            "examples": [
+              "ok"
+            ]
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "description": "Error body used by every non-2xx answer.",
+        "required": [
+          "detail"
+        ],
+        "properties": {
+          "detail": {
+            "type": "string",
+            "description": "Human-readable error message."
+          },
+          "request_id": {
+            "type": "string",
+            "description": "Request id (also in the `X-Request-Id` header). Quote it when contacting support."
+          }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "description": "Error body of a `422` answer: a missing or invalid query parameter.",
+        "required": [
+          "detail"
+        ],
+        "properties": {
+          "detail": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "type",
+                "loc",
+                "msg"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "examples": [
+                    "missing"
+                  ]
+                },
+                "loc": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "integer"
+                    ]
+                  },
+                  "examples": [
+                    [
+                      "query",
+                      "url"
+                    ]
+                  ]
+                },
+                "msg": {
+                  "type": "string",
+                  "examples": [
+                    "Field required"
+                  ]
+                },
+                "input": {
+                  "description": "The rejected value."
+                },
+                "ctx": {
+                  "type": "object",
+                  "description": "Validation context (limits etc.)."
+                }
+              }
+            }
+          },
+          "request_id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

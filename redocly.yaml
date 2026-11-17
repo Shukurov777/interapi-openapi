@@ -1,0 +1,7 @@
+extends:
+  - recommended
+
+rules:
+  # /api/status, /api/health and /api/v1/catalog are public GET endpoints without parameters:
+  # they cannot answer with a client error, so no 4XX is documented for them.
+  operation-4xx-response: off
